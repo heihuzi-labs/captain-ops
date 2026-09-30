@@ -48,4 +48,4 @@ The plan has four steps: a proof of concept, a minimum usable version, filling i
 
 ---
 
-<sub>Part of the Captain series from [heihuzi-labs](https://github.com/heihuzi-labs): [Captain Crew](https://github.com/heihuzi-labs/captain-crew) · [Captain Kube](https://github.com/heihuzi-labs/captain-kube) · **Captain Ops** · [Captain Todo](https://github.com/heihuzi-labs/captain-todo)</sub>
+<sub>Part of the Captain series from [heihuzi-labs](https://github.com/heihuzi-labs): [Captain Agents](https://github.com/heihuzi-labs/captain-agents) · [Captain Kube](https://github.com/heihuzi-labs/captain-kube) · **Captain Ops** · [Captain Todo](https://github.com/heihuzi-labs/captain-todo)</sub>
