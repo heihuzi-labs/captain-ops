@@ -1,0 +1,65 @@
+# 第一阶段：构建阶段
+FROM node:18-alpine AS builder
+
+# 设置阿里云Alpine镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
+# 设置npm镜像源
+RUN npm config set registry https://registry.npmmirror.com
+
+# 设置工作目录
+WORKDIR /build
+
+# 复制package文件
+COPY frontend/package*.json ./
+
+# 安装所有依赖（包括开发依赖，用于构建）
+RUN npm ci
+
+# 复制源代码
+COPY frontend/public ./public
+COPY frontend/src ./src
+COPY frontend/tsconfig.json ./
+
+# 验证文件是否存在
+RUN ls -la && ls -la public/ || echo "Public directory missing!"
+
+# 接收构建参数
+ARG REACT_APP_API_URL
+
+# 设置构建时的环境变量
+# 如果提供了REACT_APP_API_URL，则使用它；否则不设置（使用代码中的默认逻辑）
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# 构建应用
+RUN npm run build
+
+# 第二阶段：运行阶段
+FROM nginx:alpine
+
+# 设置阿里云Alpine镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
+# 安装必要工具
+RUN apk add --no-cache curl
+
+# 复制构建产物
+COPY --from=builder /build/build /usr/share/nginx/html
+
+# 复制nginx配置
+COPY docker/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+# 创建运行时配置脚本
+COPY docker/frontend/env-config.js /usr/share/nginx/html/env-config.js
+COPY docker/frontend/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# 暴露端口
+EXPOSE 80
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
+
+# 启动
+ENTRYPOINT ["/entrypoint.sh"]

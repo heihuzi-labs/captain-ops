@@ -1,0 +1,214 @@
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Layout, message } from 'antd';
+import { useSelector } from 'react-redux';
+import { RootState } from './store';
+import LoginPage from './pages/LoginPage';
+import DashboardLayout from './components/DashboardLayout';
+import PermissionGuard from './components/PermissionGuard';
+import DashboardPage from './pages/DashboardPage';
+import UsersPage from './pages/UsersPage';
+import AssetsPage from './pages/AssetsPage';
+import CredentialsPage from './pages/CredentialsPage';
+import AuditLogsPage from './pages/AuditLogsPage';
+import SSHSessionsPage from './pages/SSHSessionsPage';
+import HostSessionsPage from './pages/sessions/HostSessionsPage';
+import DatabaseSessionsPage from './pages/sessions/DatabaseSessionsPage';
+import OnlineSessionsPage from './pages/audit/OnlineSessionsPage';
+import SessionAuditPage from './pages/audit/SessionAuditPage';
+import CommandAuditPage from './pages/audit/CommandAuditPage';
+import OperationAuditPage from './pages/audit/OperationAuditPage';
+import AuditOverviewPage from './pages/audit/AuditOverviewPage';
+import RecordingAuditPage from './pages/audit/RecordingAuditPage';
+import GroupManagePage from './pages/GroupManagePage';
+import TerminalPage from './pages/connect/TerminalPage';
+import WorkspaceStandalone from './pages/connect/WorkspaceStandalone';
+import CommandFilterPage from './pages/AccessControl/CommandFilterPage';
+import WelcomeModal from './components/common/WelcomeModal';
+
+// 配置全局消息
+message.config({
+  top: 80,           // 更靠上一点，更明显
+  duration: 4,       // 稍长一点的显示时间
+  maxCount: 5,       // 允许更多消息同时显示
+  rtl: false,        // 确保从左到右显示
+});
+
+const App: React.FC = () => {
+  const { token, user } = useSelector((state: RootState) => state.auth);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    // 检查当前会话是否已显示过欢迎提示
+    if (token && user) {
+      const welcomeShownKey = 'welcome_shown_session';
+      const hasShownInSession = sessionStorage.getItem(welcomeShownKey);
+      
+      if (!hasShownInSession) {
+        setShowWelcome(true);
+        // 标记当前会话已显示过欢迎提示
+        sessionStorage.setItem(welcomeShownKey, 'true');
+      }
+    }
+  }, [token, user]);
+
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+  };
+
+  return (
+    <div className="App">
+      <WelcomeModal visible={showWelcome} onClose={handleCloseWelcome} />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        {/* 独立的工作台页面 - 对所有已登录用户开放 */}
+        <Route 
+          path="/connect/workspace" 
+          element={
+            token ? (
+              <WorkspaceStandalone />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        <Route
+          path="/*"
+          element={
+            token ? (
+              <DashboardLayout>
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route 
+                    path="/users" 
+                    element={
+                      <PermissionGuard requiredRole="admin">
+                        <UsersPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/assets" 
+                    element={<Navigate to="/assets/hosts" replace />} 
+                  />
+                  <Route 
+                    path="/assets/hosts" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <AssetsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/assets/databases" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <AssetsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/assets/groups" 
+                    element={
+                      <PermissionGuard requiredRole="admin">
+                        <GroupManagePage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/credentials" 
+                    element={<Navigate to="/credentials/password" replace />} 
+                  />
+                  <Route 
+                    path="/credentials/password" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <CredentialsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/credentials/ssh-key" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <CredentialsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/sessions" 
+                    element={<Navigate to="/connect/hosts" replace />} 
+                  />
+                  <Route 
+                    path="/sessions/hosts" 
+                    element={<Navigate to="/connect/hosts" replace />} 
+                  />
+                  <Route 
+                    path="/sessions/databases" 
+                    element={<Navigate to="/connect/databases" replace />} 
+                  />
+                  <Route 
+                    path="/connect" 
+                    element={<Navigate to="/connect/hosts" replace />} 
+                  />
+                  <Route 
+                    path="/connect/hosts" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <HostSessionsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/connect/databases" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <DatabaseSessionsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/connect/terminal/:sessionId" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <TerminalPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route 
+                    path="/ssh-sessions" 
+                    element={
+                      <PermissionGuard requiredRole={['admin', 'operator']}>
+                        <SSHSessionsPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                  <Route path="/audit-logs" element={<AuditLogsPage />} />
+                  <Route path="/audit" element={<AuditOverviewPage />} />
+                  <Route path="/audit/online-sessions" element={<OnlineSessionsPage />} />
+                  <Route path="/audit/session-audit" element={<SessionAuditPage />} />
+                  <Route path="/audit/command-audit" element={<CommandAuditPage />} />
+                  <Route path="/audit/operation-audit" element={<OperationAuditPage />} />
+                  <Route path="/audit/recording-audit" element={<RecordingAuditPage />} />
+                  <Route 
+                    path="/access-control/command-filter" 
+                    element={
+                      <PermissionGuard requiredRole="admin">
+                        <CommandFilterPage />
+                      </PermissionGuard>
+                    } 
+                  />
+                </Routes>
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+      </Routes>
+    </div>
+  );
+};
+
+export default App; 
