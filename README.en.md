@@ -98,4 +98,4 @@ Each feature started as a requirements doc, a design and a task list, which the 
 
 ---
 
-<sub>Part of the Captain series from [heihuzi-labs](https://github.com/heihuzi-labs): [Captain Agents](https://github.com/heihuzi-labs/captain-agents) · [Captain Kube](https://github.com/heihuzi-labs/captain-kube) · **Captain Ops** · [Captain Todo](https://github.com/heihuzi-labs/captain-todo)</sub>
+<sub>Part of the Captain series from [heihuzi-labs](https://github.com/heihuzi-labs): [Captain Agents](https://github.com/heihuzi-labs/captain-agents) · [Captain Kube](https://github.com/heihuzi-labs/captain-kube) · **Captain Ops** · [Captain Password](https://github.com/heihuzi-labs/captain-password) · [Captain Todo](https://github.com/heihuzi-labs/captain-todo)</sub>
